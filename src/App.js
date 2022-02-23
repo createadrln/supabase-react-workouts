@@ -1,25 +1,36 @@
-import logo from './logo.svg';
-import './App.css';
+import "./index.css";
+import { useState, useEffect, Fragment } from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { supabase } from "./supabaseClient";
+import Auth from "./Auth";
+import Account from "./Account";
+import Header from "./components/Header";
+import About from "./components/About";
+import Workouts from "./components/Workouts";
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+export default function Home() {
+  const [session, setSession] = useState(null);
+
+  useEffect(() => {
+    setSession(supabase.auth.session());
+
+    supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+  }, []);
+
+  return !session ? (
+    <Auth />
+  ) : (
+    <Fragment>
+      <Router>
+        <Header />
+        <Routes>
+          <Route path="/about" element={<About />} />
+          <Route path="/account" element={<Account key={session.user.id} session={session} />} />
+          <Route path="/workouts" element={<Workouts key={session.user.id} session={session} />} />
+        </Routes>
+      </Router>
+    </Fragment>
   );
 }
-
-export default App;
